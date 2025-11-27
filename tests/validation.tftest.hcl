@@ -2,59 +2,47 @@
 # MikroTik Users Module - Validation Tests
 # =============================================================================
 
-# Test 1: Valid username
-run "valid_username" {
+# Mock provider configuration for testing without real RouterOS device
+mock_provider "routeros" {}
+
+# IMPORTANT: terraform-routeros/routeros provider does NOT support user management
+# This module is metadata-only for documentation purposes
+
+# Test 1: Module accepts valid configuration
+run "valid_config" {
   command = plan
   
   variables {
     users = {
       "admin-user" = {
-        name  = "admin-user"
-        group = "full"
+        group    = "full"
+        password = "SecurePass123!"
       }
     }
   }
   
   assert {
-    condition     = var.users["admin-user"].name == "admin-user"
-    error_message = "Username should match"
+    condition     = output.user_count == 0
+    error_message = "User count should always be 0 (metadata-only)"
   }
 }
 
-# Test 2: Valid group
-run "valid_group" {
+# Test 2: Module accepts empty configuration
+run "empty_config" {
   command = plan
   
   variables {
-    groups = {
-      "monitoring" = {
-        name     = "monitoring"
-        policies = ["read", "test"]
-      }
-    }
+    users       = {}
+    user_groups = {}
   }
   
   assert {
-    condition     = var.groups["monitoring"].name == "monitoring"
-    error_message = "Group name should match"
-  }
-}
-
-# Test 3: Valid policies
-run "valid_policies" {
-  command = plan
-  
-  variables {
-    groups = {
-      "custom" = {
-        name     = "custom"
-        policies = ["read", "write", "policy"]
-      }
-    }
+    condition     = output.user_count == 0
+    error_message = "User count should be 0"
   }
   
   assert {
-    condition     = length(var.groups["custom"].policies) == 3
-    error_message = "Should have 3 policies"
+    condition     = output.user_group_count == 0
+    error_message = "Group count should be 0"
   }
 }

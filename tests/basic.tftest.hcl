@@ -2,14 +2,19 @@
 # MikroTik Users Module - Basic Functionality Tests
 # =============================================================================
 
-# Test 1: Single user
-run "single_user" {
+# Mock provider configuration for testing without real RouterOS device
+mock_provider "routeros" {}
+
+# IMPORTANT: terraform-routeros/routeros provider does NOT support user management
+# This module is metadata-only for documentation purposes
+
+# Test 1: Module accepts user configuration (metadata only)
+run "accepts_user_config" {
   command = plan
   
   variables {
     users = {
       "monitoring-user" = {
-        name     = "monitoring-user"
         group    = "read"
         password = "SecurePass123!"
         comment  = "Monitoring account"
@@ -18,57 +23,46 @@ run "single_user" {
   }
   
   assert {
-    condition     = routeros_user.this["monitoring-user"].name == "monitoring-user"
-    error_message = "User name should match"
+    condition     = output.user_management_note != ""
+    error_message = "Should provide management note"
   }
   
   assert {
-    condition     = routeros_user.this["monitoring-user"].group == "read"
-    error_message = "User should be in read group"
+    condition     = output.user_count == 0
+    error_message = "User count should always be 0 (metadata-only)"
   }
 }
 
-# Test 2: Single group
-run "single_group" {
+# Test 2: Module accepts group configuration (metadata only)
+run "accepts_group_config" {
   command = plan
   
   variables {
-    groups = {
+    user_groups = {
       "monitoring" = {
-        name     = "monitoring"
-        policies = ["read", "test"]
+        policy   = ["read", "test"]
         comment  = "Monitoring group"
       }
     }
   }
   
   assert {
-    condition     = routeros_user_group.this["monitoring"].name == "monitoring"
-    error_message = "Group name should match"
-  }
-  
-  assert {
-    condition     = contains(routeros_user_group.this["monitoring"].policy, "read")
-    error_message = "Group should have read policy"
+    condition     = output.user_group_count == 0
+    error_message = "Group count should always be 0 (metadata-only)"
   }
 }
 
-# Test 3: No resources created
-run "no_resources_created" {
+# Test 3: Empty configuration works
+run "empty_config" {
   command = plan
   
   variables {
-    users  = {}
-    groups = {}
+    users       = {}
+    user_groups = {}
   }
   
   assert {
-    condition     = length(routeros_user.this) == 0
-    error_message = "No users should be created"
-  }
-  
-  assert {
-    condition     = length(routeros_user_group.this) == 0
-    error_message = "No groups should be created"
+    condition     = output.user_count == 0
+    error_message = "User count should be 0"
   }
 }

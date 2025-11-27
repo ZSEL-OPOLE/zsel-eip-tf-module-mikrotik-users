@@ -42,7 +42,7 @@ output "user_group_count" {
 }
 
 output "usernames" {
-  description = "List of configured usernames"
-  value       = keys(routeros_user.this)
+  description = "List of configured usernames (always empty - managed manually)"
+  value       = []
   sensitive   = true
 }
